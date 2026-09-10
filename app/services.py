@@ -3,13 +3,12 @@ from datetime import datetime, timezone
 
 from asyncpg.exceptions import UniqueViolationError
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import select, and_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import models
 import schemas
-
 
 async def add_item(
         session: AsyncSession,
@@ -65,28 +64,25 @@ async def find_item(
     Ищем в БД данные в запросе от клиента, проверяя если поле не пустое, то добавляем в запрос
 
     """
-    query_all =''
-    if find_data['title'] != None:
-        query_all = query_all + ' ' + 'orm_model.title == ' + find_data['title']
-    if query_all != '':
-        query_all = query_all + ' and '
-    if find_data['description'] != None:
-        query_all = query_all + ' ' + 'orm_model.description == ' + find_data['description']
-    if query_all != '' and  find_data['description'] != None:
-        query_all = query_all + ' and '
-    if find_data['price'] != None:
-        query_all = query_all + ' ' + 'orm_model.price == ' + find_data['price']
-    if query_all != '' and  find_data['price'] != None:
-        query_all = query_all + ' and '
-    if find_data['author_id'] != None:
-        query_all = query_all + ' ' + 'orm_model.author_id == ' + find_data['author_id']
 
-    stmt = select(orm_model).where(query_all)
+    query_all =[]
+    if find_data['title'] != None:
+        query_all.append(orm_model.title == find_data['title'])
+    if find_data['description'] != None:
+        query_all.append(orm_model.description == find_data['description'])
+    if find_data['price'] != None:
+        query_all.append(orm_model.price == find_data['price'])
+    if find_data['author_id'] != None:
+        query_all.append(orm_model.author_id == find_data['author_id'])
+    if find_data['start_time'] != None:
+        query_all.append(orm_model.start_time == find_data['start_time'])
+
+    stmt = select(orm_model).filter(and_(*query_all))
     result = await session.execute(stmt)
     item = result.scalar_one_or_none()
-    itemdict = schemas.GetAdvertResponse(**item.to_dict())
+    item_dict = schemas.GetAdvertResponse(**item.to_dict())
 
-    item = await get_item(session, orm_model, itemdict['item_id'])
+    item = await get_item(session, orm_model, item_dict['item_id'])
 
     # Преобразуем update_data в словарь, исключая поля со значением None
     find_dict = find_data.model_dump(exclude_unset=True)

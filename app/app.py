@@ -22,7 +22,7 @@ app = FastAPI(
 SessionDep = Annotated[AsyncSession, Depends(get_db_session)]
 
 
-@app.post("/v1/advertisement", response_model=schemas.CreateAdvertResponse, summary="Создать новое объявление")
+@app.post("/advertisement", response_model=schemas.CreateAdvertResponse, summary="Создать новое объявление")
 async def create_advert(
         advert_data: schemas.CreateAdvertRequest,
         session: SessionDep
@@ -32,7 +32,7 @@ async def create_advert(
     return schemas.CreateAdvertResponse(id=new_advert.id)
 
 
-@app.get("/v1/advertisement/{item_id}", response_model=schemas.GetAdvertResponse, summary="Получить объявление по ID")
+@app.get("/advertisement/{item_id}", response_model=schemas.GetAdvertResponse, summary="Получить объявление по ID")
 async def get_advert(
         item_id: int,
         session: SessionDep
@@ -41,16 +41,16 @@ async def get_advert(
     # Преобразуем ORM-модель в словарь и затем в Pydantic-схему
     return schemas.GetAdvertResponse(**advert.to_dict())
 
-@app.get("/v1/advertisement?{query_string}", response_model=schemas.FindAdvertResponse, summary="Поиск по полям объявления")
+@app.get("/advertisement", response_model=schemas.FindAdvertResponse, summary="Поиск по полям объявления")
 async def find_advert(
-        find_data: schemas.FindAdvertRequest,
+        query_string: schemas.FindAdvertRequest,
         session: SessionDep
 ):
-    found_advert = await find_item(session, models.Advert, find_data)
+    found_advert = await find_item(session, models.Advert, query_string)
     return schemas.FindAdvertResponse(**found_advert.to_dict())
 
 
-@app.patch("/v1/advertisement/{item_id}", response_model=schemas.UpdateAdvertResponse, summary="Обновить объявление")
+@app.patch("/advertisement/{item_id}", response_model=schemas.UpdateAdvertResponse, summary="Обновить объявление")
 async def update_advert(
         item_id: int,
         update_data: schemas.UpdateAdvertRequest,
@@ -60,7 +60,7 @@ async def update_advert(
     return schemas.UpdateAdvertResponse(**updated_advert.to_dict())
 
 
-@app.delete("/v1/advertisement/{item_id}", response_model=schemas.OKResponse, summary="Удалить объявление")
+@app.delete("/advertisement/{item_id}", response_model=schemas.OKResponse, summary="Удалить объявление")
 async def delete_advert(
         item_id: int,
         session: SessionDep
