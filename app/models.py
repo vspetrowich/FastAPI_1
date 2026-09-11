@@ -9,9 +9,8 @@ class Advert(Base):
     title = Column(String(200), nullable=False)
     description =  Column(Text, nullable=False)
     price = Column(Float, nullable=False)
-    author_id = Column(Integer, nullable=False)
-    #author_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    start_time = Column(DateTime(timezone=True), server_default=func.now())
+    author = Column(String(70), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
     def to_dict(self):
@@ -21,7 +20,7 @@ class Advert(Base):
             "title": self.title,
             "description": self.description,
             "price": self.price,
-            "author_id": self.author_id,
-            "start_time": self.start_time.isoformat() if self.start_time else None,
+            "author": self.author,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
 
         }
